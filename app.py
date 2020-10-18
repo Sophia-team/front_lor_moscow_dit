@@ -7,6 +7,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 import pandas as pd
 from dash.dependencies import Input, Output, State
+import geopandas as gpd
 import cufflinks as cf
 
 app = dash.Dash(
@@ -21,9 +22,11 @@ server = app.server
 
 APP_PATH = str(pathlib.Path(__file__).parent.resolve())
 
-df_lat_lon = pd.read_csv(os.path.join(APP_PATH, os.path.join("data", "data.csv")))[["Latitude ", "Longitude", "Hover"]]
+# geo_data = gpd.gpd.read_file('geo.json')
 
-df_full_data = pd.read_csv(os.path.join(APP_PATH, os.path.join("data", "agg_data.csv")))
+df_lat_lon = pd.read_csv(os.path.join(APP_PATH, os.path.join("data", "lon_lat_names.csv")))[["Latitude ", "Longitude", "Hover"]]
+geo_data = gpd.gpd.read_file(os.path.join(APP_PATH, os.path.join("data", 'geo.json')))
+df_full_data = pd.read_csv(os.path.join(APP_PATH, os.path.join("data", "graph_stats.csv")))
 
 DATES = [
     1, 2,
@@ -42,18 +45,18 @@ DATES = [
     27, 28,
     29, 30,]
 
-BINS = [
-    "0-1%",
-    "1-5%",
-    "5-10%",
-    "10-15%",
-    "15-20%",
-    "20-30%",
-    "30-40%",
-    "40-50%",
-    "50-60%",
-    "60-100%",
-]
+BINS = {
+    "0-0.1%": (0, 0.1),
+    "0.1-0.5%": (0.1, 0.5),
+    "0.5-1%": (0.5, 1),
+    "1-5%": (1, 5),
+    "5-10%": (5, 10),
+    "10-20%": (10, 20),
+    "20-40%": (20, 40),
+    "40-50%": (40, 50),
+    "50-60%": (50, 60),
+    "60-100%": (60, 100),
+}
 
 DEFAULT_COLORSCALE = [
     "#f2fffb",
@@ -221,7 +224,7 @@ app.layout = html.Div(
     [State("county-choropleth", "figure")],
 )
 def display_map(day, figure):
-    cm = dict(zip(BINS, DEFAULT_COLORSCALE))
+    cm = dict(zip(list(BINS.keys()), DEFAULT_COLORSCALE))
 
     data = [
         dict(
@@ -246,7 +249,7 @@ def display_map(day, figure):
         )
     ]
 
-    for i, bin in enumerate(reversed(BINS)):
+    for i, bin in enumerate(reversed(list(BINS.keys()))):
         color = cm[bin]
         annotations.append(
             dict(
@@ -286,13 +289,19 @@ def display_map(day, figure):
         dragmode="lasso",
     )
 
-    base_url = "https://raw.githubusercontent.com/jackparmer/mapbox-counties/master/"
-    with open(os.path.join(APP_PATH, os.path.join("data", "mo.geojson")), "r") as read_file:
-        geojson = json.load(read_file)
-    for bin in BINS:
+    # base_url = "https://raw.githubusercontent.com/jackparmer/mapbox-counties/master/"
+    # if scenario == 0:
+    #     col_name = 'rel'
+    # else:
+    #     col_name = 'rel_{}'.format(scenario)
+
+    # answer = geo_data[(geo_data.date == day) & (geo_data[col_name] >= start) & (geo_data[col_name] < end)]
+    # with open(os.path.join(APP_PATH, os.path.join("data", "mo.geojson")), "r") as read_file:
+    #     geojson = json.load(read_file)
+    for bin in BINS.keys():
         geo_layer = dict(
             sourcetype="geojson",
-            source=geojson,
+            source=json.loads(geo_data[(geo_data.date == day) & (geo_data['rel'] >= BINS[bin][0]) & (geo_data['rel'] < BINS[bin][1])].to_json()),
             type="fill",
             color=cm[bin],
             opacity=DEFAULT_OPACITY,
@@ -373,3 +382,4 @@ def display_selected_data(scenario_dropdown, chart_dropdown, day):
 
 if __name__ == "__main__":
     app.run_server(debug=False)
+
