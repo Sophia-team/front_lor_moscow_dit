@@ -106,5 +106,13 @@ for i in BINS:
     data3
 
 
+import pandas as pd
+import geopandas as gpd
+from shapely.geometry import shape
+
+nta = pd.read_json( r'https://data.cityofnewyork.us/resource/93vf-i5bz.json' )
+nta['the_geom'] = nta['the_geom'].apply(shape)
+nta_geo = gpd.GeoDataFrame(nta).set_geometry('geometry')
+
 
 data.groupby(['state', 'state_district', 'suburb']).size()
