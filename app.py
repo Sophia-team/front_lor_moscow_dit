@@ -7,6 +7,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 import pandas as pd
 from dash.dependencies import Input, Output, State
+import cufflinks as cf
 
 app = dash.Dash(
     __name__,
@@ -84,10 +85,7 @@ app.layout = html.Div(
                 html.H4(children="SOPHIA: Очаги распространения инфекции"),
                 html.P(
                     id="description",
-                    children="† Deaths are classified using the International Classification of Diseases, \
-                    Tenth Revision (ICD–10). Drug-poisoning deaths are defined as having ICD–10 underlying \
-                    cause-of-death codes X40–X44 (unintentional), X60–X64 (suicide), X85 (homicide), or Y10–Y14 \
-                    (undetermined intent).",
+                    children="† Тут нужно написать много текста про то, что мы сделали. Тут нужно написать много текста про то, что мы сделали.Тут нужно написать много текста про то, что мы сделали.Тут нужно написать много текста про то, что мы сделали.Тут нужно написать много текста про то, что мы сделали.Тут нужно написать много текста про то, что мы сделали.Тут нужно написать много текста про то, что мы сделали.Тут нужно написать много текста про то, что мы сделали.",
                 ),
             ],
         ),
